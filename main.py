@@ -35,6 +35,71 @@ def load_transactions_from_file(filename="transactions.csv"):
 # ==========================
 # TRANSACTION MANAGEMENT FUNCTIONS
 # ==========================
+def edit_transaction(transactions):
+    """Edit an existing transaction."""
+    if not transactions:
+        print("\nNo transactions available to edit.")
+        return
+
+    print("\nTransactions:")
+    for i, transaction in enumerate(transactions, start=1):
+        print(f"{i}. {transaction['Date']}: {transaction['Type']} of ${transaction['Amount']} "
+              f"in {transaction['Category']} ({transaction['Description']})")
+
+    while True:
+        try:
+            index = int(input("\nEnter the number of the transaction to edit (or 0 to cancel): "))
+            if index == 0:
+                print("Edit cancelled.")
+                return
+            if 1 <= index <= len(transactions):
+                transaction = transactions[index - 1]
+                
+                print("\nLeave blank to keep the current value.")
+                
+                new_date = input(f"New Date (current: {transaction['Date']}): ").strip() or transaction["Date"]
+                new_category = input(f"New Category (current: {transaction['Category']}): ").strip() or transaction["Category"]
+                new_description = input(f"New Description (current: {transaction['Description']}): ").strip() or transaction["Description"]
+                
+                while True:
+                    new_amount = input(f"New Amount (current: ${transaction['Amount']}): ").strip()
+                    if new_amount:
+                        try:
+                            new_amount = float(new_amount)
+                            break
+                        except ValueError:
+                            print("Invalid amount. Please enter a numeric value.")
+                    else:
+                        new_amount = transaction["Amount"]
+                        break
+                
+                while True:
+                    new_type = input(f"New Type (current: {transaction['Type']}, 'Income' or 'Expense'): ").strip().capitalize()
+                    if not new_type:
+                        new_type = transaction["Type"]
+                        break
+                    elif new_type in ["Income", "Expense"]:
+                        break
+                    else:
+                        print("Invalid type. Please enter 'Income' or 'Expense'.")
+
+                # Apply changes
+                transactions[index - 1] = {
+                    "Date": new_date,
+                    "Category": new_category,
+                    "Description": new_description,
+                    "Amount": new_amount,
+                    "Type": new_type
+                }
+
+                print("\nTransaction updated successfully!\n")
+                return
+            else:
+                print(f"Invalid choice. Please choose a number between 1 and {len(transactions)}.")
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+    
+                
 
 def add_transaction(transactions):
     """Add a new transaction to the list."""
@@ -189,7 +254,6 @@ def view_summary_statistics(transactions):
 # ==========================
 # MAIN FUNCTION & MENU SYSTEM
 # ==========================
-
 def main():
     print("Welcome to your Personal Finance Dashboard!\n")
     transactions = load_transactions_from_file()
@@ -201,9 +265,10 @@ def main():
         print("3. Save Transactions")
         print("4. Delete a Transaction")
         print("5. Search Transactions")
-        print("6. View Summary Statistics")
-        print("7. Exit")
-        choice = input("Choose an option (1-7): ")
+        print("6. Edit a Transaction")
+        print("7. View Summary Statistics")
+        print("8. Exit")
+        choice = input("Choose an option (1-8): ")
 
         if choice == "1":
             add_transaction(transactions)
@@ -216,8 +281,10 @@ def main():
         elif choice == "5":
             search_transactions(transactions)
         elif choice == "6":
-            view_summary_statistics(transactions)
+            edit_transaction(transactions) 
         elif choice == "7":
+            view_summary_statistics(transactions)
+        elif choice == "8":
             save_transactions_to_file(transactions)
             print("Goodbye!")
             break
